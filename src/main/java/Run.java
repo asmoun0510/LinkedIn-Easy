@@ -15,49 +15,50 @@ public class Run {
         System.out.println("3. Answer questions needed for applying");
         Scanner keyboard = new Scanner(System.in);
         String choice = keyboard.nextLine();
-        if (choice.equals("1")) {
-            System.out.println("Please enter name of file for job Ids");
-            String fileName = keyboard.nextLine();
-            System.out.println("Please enter you Keywords");
-            String keyWord = keyboard.nextLine();
-            System.out.println("Please enter your location");
-            String location = keyboard.nextLine();
-            System.out.println("add Remote ? yes/no");
-            boolean remote = keyboard.nextLine().equals("yes");
-            WebDriver driverBrowseJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
-            Thread.sleep(5000);
-            myLib.BrowsJobs(keyWord, location, remote, fileName, driverBrowseJobs);
-            System.out.println("done browsing jobs");
-        } else if (choice.equals("2")) {
-            WebDriver driverApplyJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
-            Scanner sc = new Scanner(new File("job_ids.txt"));
-            while (sc.hasNext()) {
-                String id = sc.nextLine();
-                myLib.Apply(id, driverApplyJobs);
+        switch (choice) {
+            case "1" -> {
+                System.out.println("Please enter you Keywords");
+                String keyWord = keyboard.nextLine();
+                System.out.println("Please enter your location");
+                String location = keyboard.nextLine();
+                System.out.println("add Remote ? yes/no");
+                boolean remote = keyboard.nextLine().equals("yes");
+                WebDriver driverBrowseJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
+                Thread.sleep(5000);
+                myLib.BrowsJobs(keyWord, location, remote, driverBrowseJobs);
+                System.out.println("done browsing jobs");
             }
-            sc.close();
-
-        } else if (choice.equals("3")) {
-            FileWriter fw = new FileWriter("Q&Updated.txt", true);
-            String line, type, question, answer;
-            Scanner sc = new Scanner(new File("Q&A.txt"));
-            while (sc.hasNext()) {
-                line = sc.nextLine();
-                String[] var = line.split("@");
-                type = var[0];
-                question = var[1];
-                answer = var[2];
-                if (answer.equals("none")) {
-                    System.out.println(type + "=>" + question);
-                    answer = keyboard.nextLine();
+            case "2" -> {
+                WebDriver driverApplyJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
+                Scanner sc = new Scanner(new File("job_ids.txt"));
+                while (sc.hasNext()) {
+                    String id = sc.nextLine();
+                    myLib.Apply(id, driverApplyJobs);
                 }
-                fw.write(type + "@" + question + "@" + answer + "\n");
-            }
-            fw.close();
-            sc.close();
+                sc.close();
 
-        } else {
-            System.out.println("wrong input please rerun ");
+            }
+            case "3" -> {
+                FileWriter fw = new FileWriter("Q&Updated.txt", true);
+                String line, type, question, answer;
+                Scanner sc = new Scanner(new File("Q&A.txt"));
+                while (sc.hasNext()) {
+                    line = sc.nextLine();
+                    String[] var = line.split("@");
+                    type = var[0];
+                    question = var[1];
+                    answer = var[2];
+                    if (answer.equals("none")) {
+                        System.out.println(type + "=>" + question);
+                        answer = keyboard.nextLine();
+                    }
+                    fw.write(type + "@" + question + "@" + answer + "\n");
+                }
+                fw.close();
+                sc.close();
+
+            }
+            default -> System.out.println("wrong input please rerun ");
         }
 
 
