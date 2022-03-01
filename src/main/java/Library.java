@@ -7,7 +7,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -16,15 +15,26 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Vector;
 
 public class Library {
     public Library() {
 
     }
 
-    public WebDriver BrowsJobs(String keywords, String location, WebDriver driver) throws InterruptedException, IOException {
+    public WebDriver BrowsJobs(String keywords, String location,boolean remote, String fileName, WebDriver driver) throws InterruptedException, IOException {
+        // getting the list of already existing job IDS
+        Vector<String> existingIds = new Vector<>();
+        Scanner sc = new Scanner(new File("all.txt"));
+        while (sc.hasNext()) {
+            String line = sc.nextLine();
+            existingIds.add(line);
+        }
+        sc.close();
+        //*****
+
         driver.get("https://www.linkedin.com/jobs/");
-        WebDriverWait wait = new WebDriverWait(driver, 60);
+        WebDriverWait wait = new WebDriverWait(driver, 120);
         Thread.sleep(2000);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@aria-label='Search by title, skill, or company']"))).sendKeys(keywords);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@aria-label='City, state, or zip code']"))).sendKeys(location);
@@ -32,36 +42,46 @@ public class Library {
         Thread.sleep(2000);
         // Filter easy apply
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@aria-label='Easy Apply filter.']"))).click();
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 
-        // Filter remote
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'On-site/Remote')]"))).click();
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[contains(.,'Remote')]"))).click();
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Show')]"))).click();
+        if (remote == true) {
+            // Filter remote
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'On-site/Remote')]"))).click();
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//label[@for='workplaceType-2']"))).click();
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@data-control-name='filter_show_results']"))).click();
+            Thread.sleep(3000);
+        }
 
         //scroll list of jobs one page
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("document.getElementsByClassName('jobs-search-results display-flex flex-column')[0].scrollTo({top: 99999, behavior: 'smooth'});");
-        Thread.sleep(5000);
+        Thread.sleep(10000);
         //get number of pages
         List<WebElement> pagination = driver.findElements(By.xpath("//button[contains(@aria-label, 'Page ')]"));
         int lastPage = Integer.parseInt(pagination.get(pagination.size() - 1).getAttribute("aria-label").replaceAll("Page ", ""));
-
+        System.out.println(lastPage + "=> last page number");
         for (int p = 1; p <= lastPage; p++) {
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(@aria-label, 'Page " + p + "')]"))).click();
-            Thread.sleep(5000);
+            Thread.sleep(2000);
             //scroll list of jobs one page
             js = (JavascriptExecutor) driver;
             js.executeScript("document.getElementsByClassName('jobs-search-results display-flex flex-column')[0].scrollTo({top: 99999, behavior: 'smooth'});");
-            Thread.sleep(5000);
+            Thread.sleep(10000);
 
             List<WebElement> list = driver.findElements(By.xpath("//div[@data-job-id]"));
             for (WebElement el : list) {
-                FileWriter fw = new FileWriter("jobIds.txt", true); //the true will append the new data
-                fw.write(el.getAttribute("data-job-id") + "\n");//appends the string to the file
-                fw.close();
-            }
+                // check if job ID already exists in the file
+                if (!existingIds.contains(el.getAttribute("data-job-id"))) {
+                    FileWriter fw = new FileWriter(fileName + ".txt", true);
+                    fw.write(el.getAttribute("data-job-id") + "\n"); //appends the string to the file
+                    fw.close();
+                }
+                else {
+                    System.out.println("exists");
+                }
 
+            }
+            System.out.println(p + "=> current page number");
         }
 
         return driver;
@@ -131,7 +151,11 @@ public class Library {
         options.addArguments("--no-sandbox");
         options.addArguments("--ignore-certificate-errors");
         options.addArguments("--disable-notifications");
-        //options.addArguments("--blink-settings=imagesEnabled=false");
+        options.addArguments("--disable-dev-shm-usage");
+
+       /* options.addArguments("--window-size=1920,1200");
+        options.addArguments("--headless");*/
+
         WebDriver driver = new ChromeDriver(options);
         driver.get("https://www.linkedin.com/checkpoint/rm/sign-in-another-account?fromSignIn=true");
         WebDriverWait wait = new WebDriverWait(driver, 30);

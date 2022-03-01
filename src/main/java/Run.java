@@ -10,20 +10,23 @@ public class Run {
 
         Library myLib = new Library();
         System.out.println("*************** Menu *****************");
-        System.out.println("1. Browse jobs by Keywords and Location - jobs ID will be saved in 'job_ids.txt' File");
+        System.out.println("1. Browse jobs by Keywords and Location to get jobs IDs");
         System.out.println("2. Apply for jobs - from job_ids.txt and result of application will be stored in 'application.txt'");
         System.out.println("3. Answer questions needed for applying");
         Scanner keyboard = new Scanner(System.in);
         String choice = keyboard.nextLine();
         if (choice.equals("1")) {
+            System.out.println("Please enter name of file for job Ids");
+            String fileName = keyboard.nextLine();
             System.out.println("Please enter you Keywords");
             String keyWord = keyboard.nextLine();
             System.out.println("Please enter your location");
             String location = keyboard.nextLine();
+            System.out.println("add Remote ? yes/no");
+            boolean remote = keyboard.nextLine().equals("yes");
             WebDriver driverBrowseJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
             Thread.sleep(5000);
-            myLib.Apply("2932880985", driverBrowseJobs);
-            myLib.BrowsJobs(keyWord, location, driverBrowseJobs);
+            myLib.BrowsJobs(keyWord, location, remote, fileName, driverBrowseJobs);
             System.out.println("done browsing jobs");
         } else if (choice.equals("2")) {
             WebDriver driverApplyJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
@@ -48,7 +51,7 @@ public class Run {
                     System.out.println(type + "=>" + question);
                     answer = keyboard.nextLine();
                 }
-                fw.write(type + "@" + question + "@" +answer + "\n");
+                fw.write(type + "@" + question + "@" + answer + "\n");
             }
             fw.close();
             sc.close();
