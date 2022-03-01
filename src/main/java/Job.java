@@ -1,15 +1,14 @@
 import java.util.Vector;
 
 public class Job {
-    // status : applied // waiting // blocked
+    // status : applied //  expired  //  blocked -need more answers  // waiting
     String id, title, company, location, status, datePosted, dateApplied;
-    Vector<Question> listOfQuestions;
 
     public Job() {
 
     }
 
-    public Job(String id, String title, String company, String location, String status, String datePosted, String dateApplied, Vector<Question> listOfQuestions) {
+    public Job(String id, String title, String company, String location, String status, String datePosted, String dateApplied) {
         this.id = id;
         this.title = title;
         this.company = company;
@@ -17,7 +16,7 @@ public class Job {
         this.status = status;
         this.datePosted = datePosted;
         this.dateApplied = dateApplied;
-        this.listOfQuestions = listOfQuestions;
+
     }
 
     public String getCompany() {
@@ -44,8 +43,8 @@ public class Job {
         return status;
     }
 
-    public Vector<Question> getListOfQuestions() {
-        return listOfQuestions;
+    public String getId() {
+        return id;
     }
 
     public void setDateApplied(String dateApplied) {
@@ -76,7 +75,4 @@ public class Job {
         this.company = company;
     }
 
-    public void setListOfQuestions(Vector<Question> listOfQuestions) {
-        this.listOfQuestions = listOfQuestions;
-    }
 }
