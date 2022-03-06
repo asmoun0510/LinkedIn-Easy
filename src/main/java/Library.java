@@ -7,8 +7,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -23,7 +23,7 @@ public class Library {
 
     }
 
-    public void BrowsJobs(String keywords, String location,boolean remote,  WebDriver driver) throws InterruptedException, IOException {
+    public void BrowsJobs(String keywords, String location, boolean remote, String visa, WebDriver driver) throws InterruptedException, IOException {
         // getting the list of already existing job IDS
         Vector<String> existingIds = new Vector<>();
         Scanner sc = new Scanner(new File("all.txt"));
@@ -71,11 +71,10 @@ public class Library {
             for (WebElement el : list) {
                 // check if job ID already exists in the file
                 if (!existingIds.contains(el.getAttribute("data-job-id"))) {
-                    FileWriter fw = new FileWriter(keywords + " "+ location + " " + new SimpleDateFormat("dd-MM-yyyy").format(new Date()) +".txt", true);
+                    FileWriter fw = new FileWriter(keywords + " " + location + " " + new SimpleDateFormat("dd-MM-yyyy").format(new Date()) + ".txt", true);
                     fw.write(el.getAttribute("data-job-id") + "\n"); //appends the string to the file
                     fw.close();
-                }
-                else {
+                } else {
                     System.out.println("exists");
                 }
 
@@ -85,54 +84,94 @@ public class Library {
 
     }
 
-    public void Apply(String jobId, WebDriver driver) throws  IOException {
+    public void Apply(String jobId, WebDriver driver) throws IOException, InterruptedException {
         driver.get("https://www.linkedin.com/jobs/view/" + jobId + "/");
-        WebDriverWait wait = new WebDriverWait(driver,Duration.ofSeconds(60));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         String tittle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h1[@class='t-24 t-bold']"))).getText();
         String company = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[@class='ember-view t-black t-normal']"))).getText();
         String location = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(("(//span[@class='jobs-unified-top-card__bullet'])[1]")))).getText().trim();
         String dateApplied = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
         //  public Job(String id, String title, String company, String location, String status, String dateApplied)
+        System.out.println("tittle: " + tittle + " company: " + company + " location :" + location + " " + dateApplied);
         Job myJob = new Job(jobId, tittle, company, location, "", "", dateApplied);
 
-        // check if accept application
+        Thread.sleep(3000);
+        // check if still accept application
         if (driver.findElements(By.xpath("//span[contains(.,'No longer accepting applications')]")).size() == 1) {
-            FileWriter fw = new FileWriter("Applications.txt", true);
-            fw.write(myJob.getId() + "@" + myJob.getTitle() + "@" + myJob.getCompany() + "@" + myJob.getLocation() + "@" + "NoLongerAccept" + "@" + myJob.getDateApplied() + "\n");
-            fw.close();
-        } else {
+            System.out.println("no longer accepts application");
             //check if already applied
-            if (driver.findElements(By.xpath("//span[contains(.,'Application submitted')]")).size() > 0) {
-                FileWriter fw = new FileWriter("Applications.txt", true);
-                fw.write(myJob.getId() + "@" + myJob.getTitle() + "@" + myJob.getCompany() + "@" + myJob.getLocation() + "@" + "AlreadyApplied" + "@" + myJob.getDateApplied() + "\n");
-                fw.close();
-            } else {
-                //click apply button
-                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Easy Apply')]"))).click();
-                // pop up
+        } else if (driver.findElements(By.xpath("//span[contains(.,'Application submitted')]")).size() > 0) {
+            System.out.println("Already applied");
+        } else {
+            //click apply button
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Easy Apply')]"))).click();
+            System.out.println("Easy Applied Clicked applied");
+            // pop up
+            // check submit first thing
+            boolean done = false;
+            while (done == false) {
+                System.out.println("inside loop");
+                try {
+                    wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Submit application')]"))).click();
+                    done = true;
+                    System.out.println("submitted");
+                    break;
+                } catch (Exception ex) {
+                    System.out.println("Submit not here");
+                    try {
+                        Thread.sleep(2000);
+                        System.out.println("checking form");
+                        List<WebElement> questions = driver.findElements(By.xpath("//div[@class='jobs-easy-apply-form-section__grouping']//span[@class='t-14 fb-form-element-label__title--is-required']"));
+
+                        if (questions.size()>0) {
+                            //get form
+                            driver.findElement(By.xpath("//h3[contains(.,'Additional Questions')]"));
+                              System.out.println(questions.size() + "=> number of questions");
+                            for (int i = 0; i < questions.size(); i++) {
+                                System.out.println(questions.get(i).getText());
+                            }
+                        }
+                        // click next
+                        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Next')]"))).click();
+                        System.out.println("Next Clicked");
+                        continue;
+                    } catch (Exception ex2) {
+                        System.out.println("Next not here");
+                        // click review
+                        try {
+                            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Review')]"))).click();
+                        } catch (Exception ex3) {
+                            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(.,'Great!')]")));
+                            System.out.println("Done");
+                            done = true;
+                        }
+                    }
+                }
 
 
-                //list of question sections jobs-easy-apply-form-section__grouping
+                //get all section
+                //List<WebElement>
+
+                //list of question sections //div[@class='jobs-easy-apply-form-section__grouping']//div//label//span
                 // dropdowns fb-dropdown
 
                 // questions list //label[@class='fb-form-element-label']//span[contains(.,'fb-form-element-label')]
 
-                // next button
-                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Next')]"))).click();
-                // review button
-                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Review')]"))).click();
-                // submit
-                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Submit application')]"))).click();
-                // success
-                wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(.,'Great!')]")));
+                // next button second
+
 
                 // write in file
+             /*
                 FileWriter fw = new FileWriter("Applications.txt", true); //the true will append the new data
-                fw.write(myJob.getId() + "@" + myJob.getTitle() + "@" + myJob.getCompany() + "@" + myJob.getLocation() + "@" + "Success" + "@" + myJob.getDateApplied() + "\n");
+                   fw.write(myJob.getId() + "@" + myJob.getTitle() + "@" + myJob.getCompany() + "@" + myJob.getLocation() + "@" + "Success" + "@" + myJob.getDateApplied() + "\n");
                 fw.close();
+              */
+
             }
         }
+
+
     }
 
     public WebDriver logIn(String username, String password) {
@@ -159,44 +198,4 @@ public class Library {
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[contains(.,'Issam Sahraoui')]")));
         return driver;
     }
-
-
-    public void initFiles() {
-        File questionsFile = new File("questions.txt");
-        File applicationFile = new File("application.txt");
-    }
-
-    public void updateQuestion() {
-        File questionsFile = new File("questions.txt");
-
-    }
-
-    public void updateApplication() throws FileNotFoundException {
-        File questionsFile = new File("application.txt");
-        Scanner questionReader = new Scanner(questionsFile);
-
-    }
-
-    public void addApplication(Job myJob) throws IOException {
-        FileWriter fw = new FileWriter("application.txt", true); //the true will append the new data
-        fw.write(myJob.getTitle() + "@" + myJob.getCompany() + "@" + myJob.getLocation() + "@" + "\n");//appends the string to the file
-        fw.close();
-    }
-
-    public void addQuestion(Question myQuestion) throws IOException {
-        FileWriter fw = new FileWriter("application3.txt", true); //the true will append the new data
-        fw.write(myQuestion.getType() + "@" + myQuestion.getAnswer() + "@" + myQuestion.getText() + "\n");//appends the string to the file
-        fw.close();
-    }
-    /*
-
-      String filename= "MyFile.txt";
-    FileWriter fw = new FileWriter(filename,true); //the true will append the new data
-    fw.write("add a line\n");//appends the string to the file
-    fw.close();
-     */
-
-
-    // job format
-
 }

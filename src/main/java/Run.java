@@ -13,6 +13,7 @@ public class Run {
         System.out.println("1. Browse jobs by Keywords and Location to get jobs IDs");
         System.out.println("2. Apply for jobs - from job_ids.txt and result of application will be stored in 'application.txt'");
         System.out.println("3. Answer questions needed for applying");
+        System.out.println("search visa sponsorship jobs Ids");
         Scanner keyboard = new Scanner(System.in);
         String choice = keyboard.nextLine();
         switch (choice) {
@@ -22,15 +23,17 @@ public class Run {
                 System.out.println("Please enter your location");
                 String location = keyboard.nextLine();
                 System.out.println("add Remote ? yes/no");
+                String visa = keyboard.nextLine();
+                System.out.println("Visa sponsorship : 'AND VISA'");
                 boolean remote = keyboard.nextLine().equals("yes");
                 WebDriver driverBrowseJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
                 Thread.sleep(5000);
-                myLib.BrowsJobs(keyWord, location, remote, driverBrowseJobs);
+                myLib.BrowsJobs(keyWord, location, remote, visa, driverBrowseJobs);
                 System.out.println("done browsing jobs");
             }
             case "2" -> {
                 WebDriver driverApplyJobs = myLib.logIn("hello@issamsahraoui.com", "Rahaf@0510");
-                Scanner sc = new Scanner(new File("job_ids.txt"));
+                Scanner sc = new Scanner(new File("all.txt"));
                 while (sc.hasNext()) {
                     String id = sc.nextLine();
                     myLib.Apply(id, driverApplyJobs);
@@ -56,6 +59,10 @@ public class Run {
                 }
                 fw.close();
                 sc.close();
+
+            }
+            case "4" -> {
+                System.out.println("1. Browse jobs by Keywords and Location to get jobs IDs");
 
             }
             default -> System.out.println("wrong input please rerun ");
