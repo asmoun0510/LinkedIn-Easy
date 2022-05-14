@@ -83,10 +83,11 @@ public class Library {
         }
 
     }
-
+//Please enter a valid answer
+    //(//p[contains(.,'Please enter a valid answer')])[2]
     public void Apply(String jobId, WebDriver driver) throws IOException, InterruptedException {
-        driver.get("https://www.linkedin.com/jobs/view/" + jobId + "/");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        driver.get("https://www.linkedin.com/jobs/view/2947540998/");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
 
         String tittle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h1[@class='t-24 t-bold']"))).getText();
         String company = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[@class='ember-view t-black t-normal']"))).getText();
@@ -120,17 +121,20 @@ public class Library {
                 } catch (Exception ex) {
                     System.out.println("Submit not here");
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(1000);
                         System.out.println("checking form");
                         List<WebElement> questions = driver.findElements(By.xpath("//div[@class='jobs-easy-apply-form-section__grouping']//span[@class='t-14 fb-form-element-label__title--is-required']"));
-
-                        if (questions.size()>0) {
-                            //get form
+                        if (questions.size() > 0) {
+                            /*
+                             //get form
                             driver.findElement(By.xpath("//h3[contains(.,'Additional Questions')]"));
-                              System.out.println(questions.size() + "=> number of questions");
+                            System.out.println(questions.size() + "=> number of questions");
                             for (int i = 0; i < questions.size(); i++) {
                                 System.out.println(questions.get(i).getText());
                             }
+                             */
+                            System.out.println("require answers => " + jobId);
+
                         }
                         // click next
                         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Next')]"))).click();
@@ -142,6 +146,7 @@ public class Library {
                         try {
                             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(.,'Review')]"))).click();
                         } catch (Exception ex3) {
+                            System.out.println("Review not here");
                             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h3[contains(.,'Great!')]")));
                             System.out.println("Done");
                             done = true;
